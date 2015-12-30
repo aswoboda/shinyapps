@@ -1,4 +1,4 @@
 shinyapps
 =========
 
-my shiny apps for school and fun
+This is where I place the code to create my shinyapps.

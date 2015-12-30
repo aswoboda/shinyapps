@@ -21,9 +21,7 @@ shinyUI(pageWithSidebar(
       tabPanel("Plot", plotOutput("marketPlot")),
       tabPanel("Tax Q", plotOutput("TaxQPlot")),
       tabPanel("Tax Revenue", plotOutput("TaxRevPlot")),
-      tabPanel("Burden", plotOutput("TaxBurdenPlot")),
-      tabPanel("Table", tableOutput("parameters")),
-      tabPanel("Another", tableOutput("linearEquations")),
+      tabPanel("Burden", plotOutput("ExcessTaxBurdenPlot")),
       tabPanel("Summary", plotOutput("SummaryPlot"))
       )
   )

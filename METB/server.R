@@ -127,9 +127,10 @@ shinyServer(function(input, output) {
   })
   
   # Tax Revenue vs. Total Burden
-  output$TaxBurdenPlot <- reactivePlot(function() {
+  output$ExcessTaxBurdenPlot <- reactivePlot(function() {
     TaxData = TaxFunctions()
-    plot(TaxData$Revenue, TaxData$LostPSCS, type = "l")
+    plot(TaxData$Revenue, TaxData$LostPSCS-TaxData$Revenue, type = "l",
+         xlab = "Tax Revenue", ylab = "Excess Tax Burden")
   })
   
   output$SummaryPlot <- reactivePlot(function() {
@@ -161,7 +162,8 @@ shinyServer(function(input, output) {
          xlab = "Per Unit Tax",
          ylab = "Equilibrium Market Quantity")
     plot(TaxData$tax, TaxData$Revenue, type = "l")
-    plot(TaxData$Revenue, TaxData$LostPSCS, type = "l")
+    plot(TaxData$Revenue, TaxData$LostPSCS-TaxData$Revenue, type = "l",
+         xlab = "Tax Revenue", ylab = "Excess Tax Burden")
   })
   
 })
