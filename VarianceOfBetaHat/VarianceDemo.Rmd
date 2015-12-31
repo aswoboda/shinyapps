@@ -1,0 +1,191 @@
+---
+title: "Bivariate OLS Slope Variance"
+author: "Aaron Swoboda"
+date: ""
+output: 
+  html_document:
+    mathjax: "//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"
+runtime: shiny
+---
+## Given a simple model: $Y = \alpha + \beta*X + u$
+
+
+Let's create two populations that have the same underlying data generating process, but can differ in ways that will be reflected in the variance of the Sample Regression Function (SRF) slope estimates.
+
+```{r, echo=FALSE}
+popMaker = function(N, alpha, beta, xbar, xsigma, usigma) {
+  X = rnorm(N, xbar, xsigma)
+  Y = alpha + beta*X + rnorm(N, 0, usigma)
+  output = list(x = X, y = Y)
+  output
+}
+
+BetaHatVarPlot <- function() {  
+  shinyApp(
+    ui = fluidPage(responsive = FALSE,
+                   fluidRow(tags$h5("Model Parameters for Both Populations")),
+                   fluidRow(style = "padding-bottom: 2px;",
+#                             column(3, 
+#                                    tags$h5("Model Parameters"),
+#                                    br(),
+                                 column(3,numericInput("alpha", label = HTML("&alpha;:"),
+                                                value = 0)),
+                                  # br(),
+                                 column(3, numericInput("beta", label = HTML("&beta;:"),
+                                                value = 2)),
+                                  # br(),
+                                 column(3,numericInput("xbar", label = "mean of X",
+                                                value = 2, min = 0)),
+                                 #  br(),
+                                 column(3,numericInput("N", label = "Population Size:",
+                                                value = 100, min = 3, max = 1000))
+                                   ),
+                  fluidRow(style = "padding-bottom: 2px;",
+                          column(4, 
+                                   tags$h5("Population 1 Specific:"),
+                                   br(),
+                                   numericInput("sigmaX1", label = HTML(paste("&sigma;", tags$sub("X"), ":")),
+                                                value = 10, min = 0, max = 1000),
+                                   br(),
+                                   numericInput("sigmaU1", label = HTML(paste("&sigma;", tags$sub("u"), ":")),
+                                                value = 10, min = 0, max = 1000),
+                                   br(),
+                                   checkboxGroupInput("show1", "Show:", 
+                                                      c("Population 1 Data" = "pop1",
+                                                        "SRFs from this Population" = "SRF1"),
+                                                      selected = "pop1"),
+                                 br(),
+                                 plotOutput('mygraph1', height = "300px")),
+                            column(4, 
+                                   tags$h5("Population 2 Specific:"),
+                                   br(),
+                                   numericInput("sigmaX2", label =  HTML(paste("&sigma;", tags$sub("X"), ":")),
+                                                value = 10, min = 0, max = 1000),
+                                   br(),
+                                   numericInput("sigmaU2", label =  HTML(paste("&sigma;", tags$sub("u"), ":")),
+                                                value = 10, min = 0, max = 1000),
+                                   br(),
+                                   checkboxGroupInput("show2", "Show:", 
+                                                      c("Population 2 Data" = "pop2",
+                                                        "SRFs from this Population" = "SRF2"),
+                                                      selected = "pop2"),
+                                   br(),
+                                   plotOutput('mygraph2', height = "300px")),
+                            column(4,
+                                   tags$h5("Sampling Simulation Parameters"),
+                                   br(),
+                                   numericInput("M", label = "Number of Simulations:",
+                                                value = 100, min = 1, max = 1000),
+                                   br(),
+                                   numericInput("n1", label = "Sample Size from Pop 1:",
+                                                value = 30, min = 5, max = 1000),
+                                   br(),
+                                   numericInput("n2", label = "Sample Size from Pop 2:",
+                                                value = 30, min = 5, max = 1000),
+                                   br(),
+                                   checkboxGroupInput("show3", "Show:", 
+                                                      c("Histogram of Beta Estimates" = "betahist")),
+                                   br(),
+                                 plotOutput('mygraph3', height = "250px"))                                   
+                          
+                     )           
+    ),
+    
+    server = function(input, output, session) {
+      
+      pop1 <- reactive({ 
+        popMaker(input$N, input$alpha, input$beta, input$xbar, input$sigmaX1, input$sigmaU1)
+        })
+      
+      pop2 <- reactive({ 
+        if(input$sigmaX1 == input$sigmaX2 & input$sigmaU1 == input$sigmaU2) {
+          pop1()
+        } else {
+          popMaker(input$N, input$alpha, input$beta, input$xbar, input$sigmaX2, input$sigmaU2)
+          }
+        })
+      
+      SRFmaker <- reactive({
+        out = matrix(NA, nrow = input$M, 4)
+        maxn = max(input$n1, input$n2)
+        for (i in 1:input$M) {        
+          sampleObs = sample(input$N, maxn, replace = TRUE)
+          sample1 = sampleObs[1:input$n1]
+          sample2 = sampleObs[1:input$n2]
+          out[i, 1:2] = coef(lm(y~x, data = pop1(), subset = sample1))
+          out[i, 3:4] = coef(lm(y~x, data = pop2(), subset = sample2))
+        }
+        out
+      }) 
+      
+      
+      
+      output$mygraph1 <- renderPlot({
+        par(mar = c(4, 4, 2, 4))
+        plot(pop1(), type = "n",
+             xlim = c(min(pop1()$x, pop2()$x), max(pop1()$x, pop2()$x)),
+             ylim = c(min(pop1()$y, pop2()$y), max(pop1()$y, pop2()$y)),
+             xlab = "X",
+             ylab = "Y",
+             las = 1)
+        title("Population 1", col.main = "red")
+        if("pop1" %in% input$show1) {
+          points(pop1())
+        }
+        if("SRF1" %in% input$show1) {
+          for (i in 1:input$M) {
+            abline(SRFmaker()[i, 1:2], col = rgb(1, 0, 0, .1))
+          }
+        }
+      })
+      
+      output$mygraph2 <- renderPlot({
+        par(mar = c(4, 4, 2, 4))
+        plot(pop2(), type = "n",
+             xlim = c(min(pop1()$x, pop2()$x), max(pop1()$x, pop2()$x)),
+             ylim = c(min(pop1()$y, pop2()$y), max(pop1()$y, pop2()$y)),
+             xlab = "X",
+             ylab = "Y",
+             las = 1)
+        title("Population 2", col.main = "blue")
+        if("pop2" %in% input$show2) {
+          points(pop2())
+        }
+        if("SRF2" %in% input$show2) {
+          for (i in 1:input$M) {
+            abline(SRFmaker()[i, 3:4], col = rgb(0, 0, 1, .1))
+          }
+        }
+      })
+      
+      output$mygraph3 <- renderPlot({
+        if ("betahist" %in% input$show3) {
+          par(mar = c(4, 4, 0.5, 4))
+          b1 = hist(SRFmaker()[, 2])
+          b2 = hist(SRFmaker()[, 4])
+          plotrangeX = range(SRFmaker()[, c(2, 4)])
+          plotmaxY = 1.5*max(c(b1$counts, b2$counts))
+          plot(b1, col = rgb(1,0,0, .25), xlim = plotrangeX, ylim = c(0, plotmaxY),
+               xlab = expression(hat(beta)),
+               main = "",
+               las = 1)
+          plot(b2, col = rgb(0,0,1, .25), xlim = plotrangeX, ylim = c(0, plotmaxY), add = TRUE)
+          legend("topleft", 
+                 c("Pop 1 samples", "Pop 2 samples"), 
+                 fill = c(rgb(1,0,0, .25),  rgb(0,0,1, .25)),
+                 box.col = "white")
+          } else plot(0, 0, type = "n", axes = FALSE,
+                      main = "", 
+                      xlab = "", 
+                      ylab = "")
+      })
+    }, options = list(height = 1200)
+  )
+}
+
+BetaHatVarPlot()
+```
+
+
+
+

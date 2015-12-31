@@ -1,4 +1,4 @@
 shinyapps
 =========
 
-This is where I place the code to create my shinyapps.
+This is where I place my code to create my shinyapps. 

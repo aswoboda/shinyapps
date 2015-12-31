@@ -1,0 +1,15 @@
+---
+title: "Econ 329: Basket Shooting Simulation"
+author: "Aaron Swoboda"
+date: ""
+output: html_document
+runtime: shiny
+---
+
+
+```{r, echo=FALSE}
+source("BinarySim.R")
+BinaryMCsim()
+```
+
+
