@@ -1,0 +1,31 @@
+---
+title: "Visualization of ICs and BCs"
+author: ""
+date: ""
+output: html_document
+---
+
+```{r, echo = FALSE}
+library(rgl)
+f <- function(x, y) x^.6*y^.4
+x <- seq(0, 10, len=50) 
+y <- seq(0, 10, len=50) 
+z <- outer(x,y,f) 
+persp3d(x,y,z, col="red",alpha=0.9) #, forceClipregion = TRUE) 
+
+
+lines <- contourLines(x, y, z, nlevels = 30)
+for (i in seq_along(lines)) {
+  x <- lines[[i]]$x
+  y <- lines[[i]]$y
+  z <- rep(lines[[i]]$level, length(x))
+  lines3d(x, y, z)
+}
+
+px = 2
+py = 1
+Inc = 12
+planes3d(px, py, 0, -1*Inc, alpha = 0.6, col = "black")
+subid <- currentSubscene3d()
+rglwidget(elementId="plot3drgl")
+```
