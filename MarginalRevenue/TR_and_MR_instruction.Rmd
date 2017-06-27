@@ -1,0 +1,198 @@
+---
+title: "R Notebook"
+output:
+  html_document: default
+  html_notebook: default
+runtime: shiny
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook aimed at introducing undergraduates to the concept of Marginal Revenue for a firm facing a linear demand curve. 
+
+## Linear Demand Curve
+
+Throughout this section, we assume the fundamental choice variable for a firm is the quantity of production. While the firm chooses the level of production, the market price is still influenced by the demand side of the market. Higher demand will lead to a higher equilibrium price, holding the quantity constant. A linear demand curve is determined by two values, the `choke price` and the `slope of the demand curve`.
+
+Shiny App of just a linear demand curve and two parameters. Can I have it so that I can choose to either calculate P(Q) or Q(P)? 
+
+```{r}
+a <- 100
+b <- 2
+
+inv_demand <- function(q) a-b*q
+demand <- function(p) (a-p)/b
+TR <- function(q) inv_demand(q)*q
+MR <- function(q) a-2*b*q
+
+max_p <- a
+max_q <- demand(0)
+
+input_q <- max_q/4
+
+show_q <- TRUE
+show_TR <- TRUE
+show_MR <- TRUE
+```
+
+Make a plot
+
+```{r}
+plot(0:max_q, inv_demand((0:max_q)), axes = FALSE,
+     type = "l", lwd = 3,
+     yaxs = "i", xaxs = "i",
+     xlab = "quantity",
+     ylab = "price",
+     main = "Demand")
+axis(1); axis(2, las = 1)
+
+if(show_TR) {
+  polygon(c(0, input_q, input_q, 0),
+        c(0, 0, inv_demand(input_q), inv_demand(input_q)),
+        col = rgb(0, 0, 1, alpha = .15),
+        border = FALSE)
+}
+
+if(show_q) {
+  points(input_q, inv_demand(input_q), 
+       pch = 16, col = "red")
+  lines(c(input_q, input_q, 0),
+        c(0, inv_demand(input_q), inv_demand(input_q)),
+        lty = 3)
+}
+
+if(show_MR) {
+  lines(c(input_q-1, input_q-1, 0),
+        c(0, inv_demand(input_q-1), inv_demand(input_q-1)),
+        lty = 2)
+  abline(a, -2*b)
+  text(input_q, MR(input_q), 
+     paste("MR =", round(MR(input_q))),
+     pos = 4)
+}
+
+```
+
+```{r}
+plot(0:max_q, TR(0:max_q), 
+     axes = FALSE,
+     type = "l", lwd = 3,
+     yaxs = "i", xaxs = "i",
+     xlab = "quantity",
+     ylab = "$",
+     main = "Total Revenue")
+axis(1); axis(2, las = 1)
+
+if(show_q) {
+  points(input_q, TR(input_q), 
+       pch = 16, col = "blue")
+  lines(c(input_q, input_q),
+      c(0, TR(input_q)),
+      col = "blue", lty = 2
+      )
+  arrows(input_q, TR(input_q), 0, TR(input_q),
+       length = .1, lty = 2,
+       col = "blue")
+}
+
+if(show_MR) {
+  lines(c(input_q-1, 0),
+      c(TR(input_q-1), TR(input_q-1)),
+      col = "grey80", lty = 2
+      )
+  text(input_q, TR(input_q), 
+     paste("MR =", round(MR(input_q))),
+     pos = 4)
+  arrows(input_q-1, TR(input_q-1), 
+       input_q-1, y1 = TR(input_q),
+       length = .05)
+  arrows(input_q-1, TR(input_q-1), 
+       input_q, TR(input_q-1),
+       length = .05)
+}
+```
+
+# Shiny App!
+
+```{r, echo = FALSE}
+library(shiny)
+
+ui <- fluidPage(
+  numericInput(inputId = "a",
+               label = "Demand Curve Intercept",
+               value = 100),
+  numericInput(inputId = "b",
+               label = "Demand Curve Slope",
+               value = 2),
+  uiOutput("int_slider"),
+  checkboxInput(inputId = "show_q",
+                label = "Show selected q",
+                value = FALSE),
+  checkboxInput(inputId = "show_TR",
+                label = "Show TR",
+                value = FALSE),
+  checkboxInput(inputId = "show_MR",
+                label = "Show MR",
+                value = FALSE),
+  plotOutput(outputId = "demand_plot",
+             height = "400px")
+)
+
+server <- function(input, output) {
+  inv_demand <- function(q) input$a-input$b*q
+  demand <- function(p) (input$a-p)/input$b
+  TR <- function(q) inv_demand(q)*q
+  MR <- function(q) input$a-2*input$b*q
+  
+  out <- reactive({
+    ot = list()
+    ot$max_p <- input$a
+    ot$max_q <- demand(0)
+    ot
+  })
+  
+  output$int_slider <- renderUI({
+    sliderInput(inputId = "q", 
+              label = "My q",
+              min = 1, max = out()$max_q, value = out()$max_q/4)
+    })
+  
+  output$demand_plot <- renderPlot({
+    plot(0:out()$max_q, inv_demand((0:out()$max_q)), axes = FALSE,
+         ylim = c(min(0, MR(input$q)), input$a),
+         type = "l", lwd = 3,
+         yaxs = "i", xaxs = "i",
+         xlab = "quantity",
+         ylab = "price",
+         main = "Demand")
+    axis(1); axis(2, las = 1)
+    
+    if(input$show_TR) {
+      polygon(c(0, input$q, input$q, 0),
+              c(0, 0, inv_demand(input$q), inv_demand(input$q)),
+              col = rgb(0, 0, 1, alpha = .15),
+              border = FALSE)
+    }
+    
+    if(input$show_q) {
+      points(input$q, inv_demand(input$q), 
+             pch = 16, col = "red")
+      lines(c(input$q, input$q, 0),
+            c(0, inv_demand(input$q), inv_demand(input$q)),
+            lty = 3)
+    }
+    
+    if(input$show_MR) {
+      lines(c(input$q-1, input$q-1, 0),
+            c(0, inv_demand(input$q-1), inv_demand(input$q-1)),
+            lty = 2)
+      abline(input$a, -2*input$b)
+      text(input$q, inv_demand(input$q), 
+           paste("MR =", round(MR(input$q))),
+           pos = 4)
+    }
+  })
+}
+
+shinyApp(ui = ui, server = server, options = list(height = 1500))
+```
+
+
