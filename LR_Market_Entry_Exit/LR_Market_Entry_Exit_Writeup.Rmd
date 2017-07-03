@@ -1,0 +1,26 @@
+---
+title: "Competitive Market Equilibrium With Firm Entry and Exit"
+author: "Aaron Swoboda"
+date: "July 3, 2017"
+output: html_document
+---
+
+## Goal
+
+Explore the effects of entry/exit on competitive market equilibrium when there are identical profit maximizing firms.
+
+## Assumptions
+
+* All firms are identical and are at the long run average cost minimizing production technology/scale.
+* Firms are profit maximizing.
+* Long Run equilibrium economic profits are zero.
+
+## Firm Costs
+
+There are two important types of costs for a firm in the long run - marginal costs and average costs. Marginal costs will help the firm find the profit maximizing level of output to produce. Average costs will help the firm make a decision regarding market entry and exit.
+
+### Marginal Costs
+
+For simiplicity, let's give the firms a linear marginal cost curve with a given intercept and slope.
+
+
