@@ -1,5 +1,6 @@
 ---
 title: "Total and Marginal Revenue for Linear Demand Curves"
+author: "Aaron Swoboda"
 output:
   html_document: default
   html_notebook: default
@@ -10,7 +11,7 @@ This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook aimed at introduc
 
 ## Linear Demand Curve
 
-While the firm chooses the level of production, the market price is determined by the demand side of the market. Higher demand will lead to a higher equilibrium price, holding the quantity constant. A linear demand curve is determined by two values, the demand curve `intercept` and `slope`. <!-- Can I make an app such that I can choose to either calculate P(Q) or Q(P)? -->
+While the firm chooses the level of production, the market price is determined by the demand side of the market. Higher demand will lead to a higher equilibrium price, holding the quantity constant. A linear demand curve is determined by two values, the demand curve `intercept` and `slope`. <!-- Can I make an app such that I can choose to either calculate P(Q) or Q(P)? It would be amazing to have a conditional panel (like a "next button?") that could add functionality to the shiny app after someone says they're ready, or answers a question...-->
 
 ```{r, echo = FALSE}
 library(shiny)
@@ -81,11 +82,9 @@ server <- function(input, output) {
 shinyApp(ui = ui, server = server, options = list(height = 400))
 ```
 
-It would be amazing to have a conditional panel (like a "next button?") that could add functionality to the shiny app after someone says they're ready, or answers a question...
-
 ## Total Revenue
 
-A firm that can influence the market price by increasing or decreasing the market quantity is also interested on the production decision's effect on revenue. First, remember that 
+A firm that can influence the market price by increasing or decreasing the market quantity is also interested on the production decision's effect on revenue. First, remember that Total Revenue is calculated as price times quantity.
 
 ```{r, echo = FALSE}
 library(shiny)
@@ -168,11 +167,14 @@ server <- function(input, output) {
 shinyApp(ui = ui, server = server, options = list(height = 400))
 ```
 
-Try different levels of q and notice what happens to to the Total Revenue in the market. You should notice a pattern that the highest Total Revenue values tend to occur in the "middle" of the demand curve, while small q (but high P) or large q (but low P) combinations tend to create less revenue. This is not a coincidence. In fact, Total Revenue follows a very specific pattern for linear demand curves.
+Try different levels of q and notice what happens to to the Total Revenue in the market. You should notice a pattern that the highest Total Revenue values tend to occur in the "middle" of the demand curve, while small q (but high P) or large q (but low P) combinations tend to create less revenue. This is not a coincidence. Total Revenue follows a very specific pattern for linear demand curves.
+
+Remember,
 
 $$TR = P*Q$$
-but we know that in this market given our demand curve $P(Q) = (a-b*Q)$,
-so 
+
+but we know that the relationship between price and quanity in this market is given our demand curve $P(Q) = (a-b*Q)$,
+so, substituting this in for P yields, 
 
 $$TR = (a -b*Q)*Q = a*Q -b*Q^2.$$
 
@@ -373,7 +375,7 @@ server <- function(input, output) {
   })
 }
 
-shinyApp(ui = ui, server = server, options = list(height = 500))
+shinyApp(ui = ui, server = server, options = list(height = 350))
 ```
 
 
