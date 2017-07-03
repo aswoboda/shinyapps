@@ -5,11 +5,19 @@ output: ioslides_presentation
 runtime: shiny
 ---
 
+## GOAL: Introduce undergraduates to the concept of Marginal Revenue for a firm facing a linear demand curve. 
+
 Throughout this section, we assume the fundamental choice variable for a firm is the quantity of production, $q$. 
 
 ## Linear Demand Curve
 
-While the firm chooses the level of production, the market price is determined by the demand side of the market. Higher demand will lead to a higher equilibrium price, holding the quantity constant. A linear demand curve is determined by two values, the demand curve `intercept` and `slope`. <!-- Can I make an app such that I can choose to either calculate P(Q) or Q(P)? It would be amazing to have a conditional panel (like a "next button?") that could add functionality to the shiny app after someone says they're ready, or answers a question...-->
+While the firm chooses the level of production, the market price is determined by the demand side of the market. Higher demand will lead to a higher equilibrium price, holding the quantity constant. A linear demand curve is determined by two values, the demand curve intercept, `a` and slope `b`. <!-- Can I make an app such that I can choose to either calculate P(Q) or Q(P)? It would be amazing to have a conditional panel (like a "next button?") that could add functionality to the shiny app after someone says they're ready, or answers a question...-->
+
+$$P = a - b*q$$
+
+##
+
+$$P = a - b*q$$
 
 ```{r, echo = FALSE}
 library(shiny)
@@ -18,10 +26,10 @@ ui <- fluidPage(
   sidebarLayout(
     sidebarPanel(
       numericInput(inputId = "a",
-               label = "Demand Curve Intercept",
+               label = "Demand Curve Intercept: a",
                value = 100),
       numericInput(inputId = "b",
-                   label = "Demand Curve Slope",
+                   label = "Demand Curve Slope: b",
                    value = 2),
       uiOutput("int_slider"),
       checkboxInput(inputId = "show_p",
@@ -30,7 +38,7 @@ ui <- fluidPage(
     ),
     mainPanel(
       plotOutput(outputId = "demand_plot",
-                 height = "300px")
+                 height = "250px")
       )
   )
 )
@@ -77,12 +85,20 @@ server <- function(input, output) {
   })
 }
 
-shinyApp(ui = ui, server = server, options = list(height = 300))
+shinyApp(ui = ui, server = server, options = list(height = 750))
 ```
 
-## Total Revenue
+##
 
-A firm that can influence the market price by increasing or decreasing the market quantity is also interested on the production decision's effect on revenue. First, remember that 
+A single firm in the market can influence the market price by increasing or decreasing the quantity in the market. Such a firm will be interested in the relationship between quantity and total revenue. 
+
+Remember that Total Revenue is calculated as price times quantity.
+
+$$TR = P*Q$$
+
+## 
+
+$$TR = P*Q$$
 
 ```{r, echo = FALSE}
 library(shiny)
@@ -106,7 +122,7 @@ ui <- fluidPage(
     ),
     mainPanel(
       plotOutput(outputId = "demand_plot",
-                 height = "400px")
+                 height = "350px")
       )
   )
 )
@@ -162,14 +178,26 @@ server <- function(input, output) {
   })
 }
 
-shinyApp(ui = ui, server = server, options = list(height = 400))
+shinyApp(ui = ui, server = server, options = list(height = 350))
 ```
 
-Try different levels of q and notice what happens to to the Total Revenue in the market. You should notice a pattern that the highest Total Revenue values tend to occur in the "middle" of the demand curve, while small q (but high P) or large q (but low P) combinations tend to create less revenue. This is not a coincidence. In fact, Total Revenue follows a very specific pattern for linear demand curves.
+##
+
+Try different levels of q and notice what happens to the Total Revenue in the market. You should notice a pattern that the highest Total Revenue values tend to occur in the "middle" of the demand curve, while small q (but high P) or large q (but low P) combinations tend to create less revenue. This is not a coincidence. 
+
+## 
+Total Revenue follows a very specific pattern for linear demand curves.
+
+Remember,
 
 $$TR = P*Q$$
-but we know that in this market given our demand curve $P(Q) = (a-b*Q)$,
-so 
+
+but we know that the relationship between price and quanity in this market is given our demand curve $P(Q) = (a-b*Q)$,
+so, substituting this in for P yields, 
+
+$$TR = (a -b*Q)*Q = a*Q -b*Q^2.$$
+
+## 
 
 $$TR = (a -b*Q)*Q = a*Q -b*Q^2.$$
 
@@ -294,8 +322,13 @@ shinyApp(ui = ui, server = server, options = list(height = 600))
 
 While the relationship between quantity and Total Revenue is important, so is the relationship between q and Marginal Revenue. In words, Marginal Revenue is the *extra* revenue from producing one additional unit. 
 
-We can see the Marginal Revenue on our Total Revenue graph as the slope of the Total Revenue graph (the change in Total Revenue for a one unit change in q). While the linear demand curve has a constant slope, our Total Revenue curve does not. The slope depends on the value of q (and our underlying demand curve). For small values of q the slope of TR is positive. That is, producing one more unit leads to an *increase* in Total Revenue. Marginal Revenue is positive. For "large" values of q (relative to the demand curve), the slope of TR is negative. Producing extra q leads to a *lower* level of Total Revenue. Marginal Revenue is negative. We can also see that for "medium" levels of q, Total Revenue is pretty similar no matter the value. In fact, there is even one level of q such that the Marginal Revenue is exactly 0 (increasing q lead to the same level of Total Revenue).
+## 
+We can see the Marginal Revenue on our Total Revenue graph as the slope of the Total Revenue graph (the change in Total Revenue for a one unit change in q). 
 
+## 
+While the linear demand curve has a constant slope, our Total Revenue curve does not. The slope depends on the value of q (and our underlying demand curve). For small values of q the slope of TR is positive. That is, producing one more unit leads to an *increase* in Total Revenue. Marginal Revenue is positive. For "large" values of q (relative to the demand curve), the slope of TR is negative. Producing extra q leads to a *lower* level of Total Revenue. Marginal Revenue is negative. We can also see that for "medium" levels of q, Total Revenue is pretty similar no matter the value. In fact, there is even one level of q such that the Marginal Revenue is exactly 0 (increasing q lead to the same level of Total Revenue).
+
+## 
 ```{r, echo = FALSE}
 library(shiny)
 
@@ -315,7 +348,7 @@ ui <- fluidPage(
     ),
     mainPanel(
       plotOutput(outputId = "TR_plot",
-                 height = "350px")
+                 height = "500px")
       
       )
   )
@@ -374,7 +407,7 @@ shinyApp(ui = ui, server = server, options = list(height = 350))
 ```
 
 
-#### Estimating Marginal Revenue
+## Estimating Marginal Revenue
 
 Marginal Revenue is the *change* in Total Revenue for a one unit change in q. We can therefore approximate Marginal Revenue as the difference between Total Revenue at q and Total Revenue at (q-1). 
 
@@ -395,6 +428,7 @@ MR &\approx  P_q*q - P_{q-1}*(q-1)\\
 
 In words, the above equation states that marginal revenue is approximately equal to the change in market price (from moving along the demand curve as q increases by one unit) times q plus the market price. In other words, by increasing q by one unit, there is extra revenue to be gained by selling one more unit at the market price, but lost revenue in the form of having to sell all of the other units at a lower price.
 
+## 
 The graph below helps show the above equation in action. For small q, the extra revenue gained from selling the next unit is positive because the losses from the changing price for increasing q are small relative to the gains from selling the next unit (earning the market price). However, as q increases, the losses increase as the reduced price now impacts more units (higher q) while the gains of earning the market price for one more unit are also lower. Thus, marginal revenue decreases with q and can be negative (selling more units can result in less revenue). 
 
 ```{r, echo = FALSE}
@@ -536,8 +570,10 @@ then,
 
 $$MR(q) = \frac{\partial TR}{\partial q} = a-2*b*q.$$
 
+##
 The equation above, Marginal Revenue $=a-2*b*q$ looks very similar to the equation for our linear demand curve, $P = a-b*q$. In fact, the linear equation for MR can be described as "the same price intercept as the linear demand curve, and twice the slope." (*Caution: This shortcut only works for linear demand curves!*)
 
+##
 We can use this shortcut to add the equation for Marginal Revenue to our graphs. Adjust the $q$ slider to see how the demand curve, Total Revenue, and Marginal Revenue relate to one another. Feel free to change the equation for the demand curve as well.
 
 ```{r, echo = FALSE}
