@@ -74,16 +74,9 @@ $$Profit = Total Revenue - Total Costs$$
 
 Total Revenue is simply market price times quanitity produced by the firm, $q$. Total Costs are the sum of variable and fixed costs. Variable costs are the sum of all variable costs of the $q$ units produced and can be calculated as the area underneath the marginal cost curve from 0 to $q$.
 
-Profits can also be calculated as a function market price, $q$, and average costs,
+Profits can also be calculated as a function of market price, the quantity produced by a firm, and average costs,
 
 $$Profit = (Price - AC)*q.$$
-
-
-Side-by-side graphs:
-Left pane showing parameters
-Center Graph showing Market Demand and Supply
-Right Graph showing Marginal Analysis (MR, MC, AC)
-Right-bottom graph showing total analysis (TR, TC, profit)
 
 Give them some parameters to put in and tell me what the graph spits out - either #s or take a picture.
 
@@ -94,26 +87,37 @@ ui <- fluidPage(
   fluidRow(
     column(6, 
            plotOutput("market_plot"),
-           column(6,
-             numericInput("a", "Demand Intercept", 100, min = 0),
-             numericInput("b", "Demand Slope", 2),
-             numericInput("c", "MC curve Intercept", 0),
-             numericInput("d", "MC curve Slope", .5),
-             numericInput("FC", "Fixed Costs", 100),
-             numericInput("n", "Number of Firms", 1)
+           column(7,
+                h4("Demand Curve"),
+                splitLayout(numericInput("a", "Intercept", 100, min = 0),
+                            numericInput("b", "Slope", 2)),
+                 checkboxInput("show_Demand", "Plot Market Demand"),
+                h4("Firm Marginal Cost Curve"),
+                 splitLayout(numericInput("c", "Intercept", 0),
+                             numericInput("d", "Slope", .5)),
+                 checkboxInput("show_MC", "Plot Marginal Cost"),
+                h4("Other Costs"),
+                 numericInput("FC", "Fixed Costs", 100),
+                 checkboxInput("show_TC", "Plot Total Cost")
            ),
-           column(6,
-                  h3("Curves to plot"),
-                  checkboxInput("show_Demand", "Plot Demand Curve"),
-                  checkboxInput(inputId = "show_profit",
-                    label = "Show Profits",
-                    value = FALSE))
+           column(5,
+                  h4("# of Firms"),
+                  numericInput("n", "", 1),
+                  checkboxInput("show_Supply", "Plot Market Supply"),
+                  h4("Equilibrium Values"),
+                  checkboxInput("show_pstar", "Market Price"),
+                  checkboxInput("show_Q", "Market Q"),
+                  checkboxInput("show_q", "Firm q"),
+                  h4("Other Values"),
+                  checkboxInput("show_TR", "Plot Total Revenue"),
+                  checkboxInput("show_AC", "Plot Average Cost"),
+                  checkboxInput("show_profit", "Plot Profits")
+                  )
   ),
-  column(6, plotOutput("marginal_plot"),
-         plotOutput("total_plot"),
-         checkboxInput(inputId = "show_profit",
-                    label = "Show Profits",
-                    value = FALSE))
+  column(6, 
+         plotOutput("marginal_plot"),
+         plotOutput("total_plot")
+         )
 ))
 
 server <- function(input, output) {
@@ -136,9 +140,14 @@ server <- function(input, output) {
          xlim = c(0, Qstar(input)*1.2), xlab = "Market Quantity",
          ylim = c(0, input$a), ylab = "Market Price",
          main = "Market")
-    abline(input$a, -1*input$b, lwd = 2, col = colDemand)
-    abline(input$c, input$d/input$n, lwd = 2, col = colSupply)
-    abline(h = invDemand(Qstar(input)), lty = 3)
+    if(input$show_Demand) abline(input$a, -1*input$b, lwd = 2, col = colDemand)
+    if(input$show_Supply) abline(input$c, input$d/input$n, lwd = 2, col = colSupply)
+    if(input$show_pstar) abline(h = invDemand(Qstar(input)), lty = 3)
+    if(input$show_Q) {
+      lines(x = c(Qstar(input), Qstar(input)), y = c(0, invDemand(Qstar(input))),
+            lty = 2)
+      text(Qstar(input), 0, "Q*", adj = c(0, -1))
+    }
     legend("topright", bty = "n", cex = 1.5,
            legend = c("Demand", "Supply"),
            text.col = c(colDemand, colSupply))
@@ -152,12 +161,24 @@ server <- function(input, output) {
          xlim = c(0, xmax), xlab = "Firm quantity",
          ylim = c(0, input$a), ylab = "Market Price",
          main = "Marginal Analysis")
-    abline(h = invDemand(Qstar(input)), lty = 3)
-    abline(input$c, input$d, lwd = 2, col = colMC)
-    lines(x = c(qstar, qstar), y = c(0, invDemand(Qstar(input))), lty = 2)
-    
-    if(input$show_profit) {
+    if(input$show_pstar) abline(h = invDemand(Qstar(input)), lty = 3)
+    if(input$show_MC) abline(input$c, input$d, lwd = 2, col = colMC)
+    if(input$show_q) {
+      lines(x = c(qstar, qstar), y = c(0, invDemand(Qstar(input))), lty = 2)
+      text(qstar, 0, "q*", adj = c(0, -1))
+    }
+    if(input$show_AC) {
       curve(AC, add = TRUE, lwd = 2, col = colAC)
+      legend("topright", bty = "n", cex = 1.5,
+           legend = c("Marginal Cost", "Average Cost"),
+           text.col = c(colMC, colAC))
+    }
+    if(!input$show_AC) {
+      legend("topright", bty = "n", cex = 1.5,
+           legend = c("Marginal Cost"),
+           text.col = c(colMC))
+    }
+    if(input$show_profit) {
       polygon(x = c(0, qstar, qstar, 0),
             y = c(AC(qstar), AC(qstar), invDemand(Qstar(input)), invDemand(Qstar(input))),
             col = rgb(0, 0, 1, .15),
@@ -165,14 +186,7 @@ server <- function(input, output) {
       profit = (invDemand(Qstar(input)) - AC(qstar))*qstar
       text(qstar/2, mean(c(invDemand(Qstar(input)), AC(qstar))),
          paste("Profit =", round(profit)))
-      legend("topright", bty = "n", cex = 1.5,
-           legend = c("Marginal Cost", "Average Cost"),
-           text.col = c(colMC, colAC))
-    }
-    if(!input$show_profit) {
-      legend("topright", bty = "n", cex = 1.5,
-           legend = c("Marginal Cost"),
-           text.col = c(colMC))
+
     }
     })
   
@@ -184,9 +198,12 @@ server <- function(input, output) {
          xlim = c(0, xmax), xlab = "Firm quantity",
          ylim = c(0, max(TC(xmax), invDemand(Qstar(input))*xmax)), ylab = "$",
          main = "Total Analysis")
-    abline(0, invDemand(Qstar(input)), lwd = 2, col = colTR)
-    curve(TC, from = -1, add = TRUE, lwd = 2, col = colTC)
-    abline(v = qstar, lty = 2)
+    if(input$show_TR) abline(0, invDemand(Qstar(input)), lwd = 2, col = colTR)
+    if(input$show_TC) curve(TC, from = -1, add = TRUE, lwd = 2, col = colTC)
+    if(input$show_q) {
+      abline(v = qstar, lty = 2)
+      text(qstar, 0, "q*", adj = c(0, -1))
+    }
     legend("topleft", bty = "n", cex = 1.5,
            legend = c("Total Revenue", "Total Cost"),
            text.col = c(colTR, colTC))
