@@ -3,6 +3,7 @@ title: "Competitive Market Equilibrium With Firm Entry and Exit"
 author: "Aaron Swoboda"
 date: "July 3, 2017"
 output: html_document
+runtime: shiny
 ---
 
 ## Goal
@@ -12,6 +13,7 @@ Explore the effects of entry/exit on competitive market equilibrium when there a
 ## Assumptions
 
 * All firms are identical and are at the long run average cost minimizing production technology/scale.
+* Firms are price takers. Treat price as constant.
 * Firms are profit maximizing.
 * Long Run equilibrium economic profits are zero.
 
@@ -19,8 +21,130 @@ Explore the effects of entry/exit on competitive market equilibrium when there a
 
 There are two important types of costs for a firm in the long run - marginal costs and average costs. Marginal costs will help the firm find the profit maximizing level of output to produce. Average costs will help the firm make a decision regarding market entry and exit.
 
-### Marginal Costs
+### Marginal Costs and Fixed Costs
 
-For simiplicity, let's give the firms a linear marginal cost curve with a given intercept and slope.
+For simspotifyplicity, let's give the firms a linear marginal cost curve with a given intercept and slope. Beyond the marginal cost curve, we also need to know the Fixed Costs for a firm. With just these three parameters we can calculate and graph:
 
+* MC
+* AFC
+* AVC
+* AC = AVC + AFC
+* FC
+* VC
+* TC = FC + VC
+
+## Profit Maximization
+
+Profit maximizing firms produce the quantity such that Marginal Revenue = Marginal Cost. Because our firms are price takers, Marginal Revenue = Market Price. The firms will therefore choose to produce q such that:
+
+$$P = MC = c + d*q.$$
+
+This relationship between price and marginal cost is the individual firm's supply curve. 
+
+## Market Supply Curve
+
+If there are $n$ firms choosing to produce such that $P = MC = c*q$, then the market quantity is $Q = n*q$. Rearranging the individual supply curve to solve for q,
+
+$$
+q = (P-c)/d
+$$ 
+
+and substituting into the the equation for market quantity,
+
+\begin{aligned}
+Q &= n*q \\
+& = n*(P-c)/d,
+\end{aligned}
+
+which is a relationship between the market price and the market output, in other words, the market supply curve.
+
+## Demand
+
+In order to find the competitive market equilibrium price and quantity, we need both the market supply and demand. Assume a linear demand curve.
+
+$$P = a - b*Q$$
+
+## Market Entry and Exit
+
+We have information about the market demand and supply curves, which means we can solve for the equilibrium price and quantity. While doing so, we have thus far assumed a fixed number of firms, $n$. The current market conditions may lead to firms wishing to exit the market for better opportunities elsewhere or additional firms wanting to enter into the market because it represents a better opportunity. Long run market entry/exit incentives depend on the profitability of the existing firms in the market. Positive profits will lead to increases in $n$ as more firms enter the market. Negtive profits create incentives for firms to leave the market and thereby reduce $n$. The number of firms in the market is in equilibrium when profits are zero.
+
+Profits for a firm are calculated as 
+
+$$Profit = Total Revenue - Total Costs$$
+
+Total Revenue is simply market price times quanitity produced by the firm, $q$. Total Costs are the sum of variable and fixed costs. Variable costs are the sum of all variable costs of the $q$ units produced and can be calculated as the area underneath the marginal cost curve from 0 to $q$.
+
+Profits can also be calculated as a function market price, $q$, and average costs,
+
+$$Profit = (Price - AC)*q.$$
+
+
+Side-by-side graphs:
+Left pane showing parameters
+Center Graph showing Market Demand and Supply
+Right Graph showing Marginal Analysis (MR, MC, AC)
+Right-bottom graph showing total analysis (TR, TC, profit)
+
+Give them some parameters to put in and tell me what the graph spits out - either #s or take a picture.
+
+```{r}
+library(shiny)
+
+ui <- fluidPage(
+  fluidRow(
+    column(6, 
+           plotOutput("market_plot"),
+           numericInput("a", "Demand Intercept", 100, min = 0),
+           numericInput("b", "Demand Slope", 2),
+           numericInput("c", "MC curve Intercept", 0),
+           numericInput("d", "MC curve Slope", .5),
+           numericInput("FC", "Fixed Costs", 100),
+           numericInput("n", "Number of Firms", 1)
+  ),
+  column(6, plotOutput("marginal_plot"),
+         plotOutput("total_plot"))
+))
+
+server <- function(input, output) {
+  Qstar <- function(input) (input$a - input$c)/(input$d/input$n + input$b)
+  invDemand <- function(Q) input$a - input$b*Q
+  TC <- function(q) input$FC + q*input$c + input$d/2*q^2
+  AC <- function(q) input$FC/q + input$c + input$d/2*q
+  
+  output$market_plot <- renderPlot({ 
+    plot(1, 1, type = "n", las = 1,
+         xaxs = "i", yaxs = "i",
+         xlim = c(0, Qstar(input)*1.2), xlab = "Market Quantity",
+         ylim = c(0, input$a), ylab = "Market Price",
+         main = "Market Plot")
+    abline(input$a, -1*input$b)
+    abline(input$c, input$d/input$n)
+    abline(h = invDemand(Qstar(input)), lty = 3)
+    })
+  
+  output$marginal_plot <- renderPlot({
+    plot(1, 1, type = "n", las = 1,
+         xaxs = "i", yaxs = "i",
+         xlim = c(0, Qstar(input)/input$n*1.2), xlab = "Firm quantity",
+         ylim = c(0, input$a), ylab = "Market Price",
+         main = "Firm Plot")
+    abline(h = invDemand(Qstar(input)), lty = 3)
+    abline(input$c, input$d)
+    curve(AC, add = TRUE)
+    })
+  
+  output$total_plot <- renderPlot({
+    xmax = Qstar(input)/input$n*1.2
+    plot(1, 1, type = "n", las = 1,
+         xaxs = "i", yaxs = "i",
+         xlim = c(0, xmax), xlab = "Firm quantity",
+         ylim = c(0, max(TC(xmax), invDemand(Qstar(input))*xmax)), ylab = "$",
+         main = "Firm Plot")
+    abline(0, invDemand(Qstar(input)))
+    curve(TC, from = -1, add = TRUE)
+    })
+}
+
+shinyApp(ui = ui, server = server, options = list(height = 1000))
+```
 

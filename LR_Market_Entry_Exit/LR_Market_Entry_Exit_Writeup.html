@@ -131,6 +131,7 @@ $(document).ready(function () {
 <h2>Assumptions</h2>
 <ul>
 <li>All firms are identical and are at the long run average cost minimizing production technology/scale.</li>
+<li>Firms are price takers. Treat price as constant.</li>
 <li>Firms are profit maximizing.</li>
 <li>Long Run equilibrium economic profits are zero.</li>
 </ul>
@@ -138,10 +139,85 @@ $(document).ready(function () {
 <div id="firm-costs" class="section level2">
 <h2>Firm Costs</h2>
 <p>There are two important types of costs for a firm in the long run - marginal costs and average costs. Marginal costs will help the firm find the profit maximizing level of output to produce. Average costs will help the firm make a decision regarding market entry and exit.</p>
-<div id="marginal-costs" class="section level3">
-<h3>Marginal Costs</h3>
-<p>For simiplicity, let’s give the firms a linear marginal cost curve with a given intercept and slope.</p>
+<div id="marginal-costs-and-fixed-costs" class="section level3">
+<h3>Marginal Costs and Fixed Costs</h3>
+<p>For simspotifyplicity, let’s give the firms a linear marginal cost curve with a given intercept and slope. Beyond the marginal cost curve, we also need to know the Fixed Costs for a firm. With just these three parameters we can calculate and graph:</p>
+<ul>
+<li>MC</li>
+<li>AFC</li>
+<li>AVC</li>
+<li>AC = AVC + AFC</li>
+<li>FC</li>
+<li>VC</li>
+<li>TC = FC + VC</li>
+</ul>
 </div>
+</div>
+<div id="profit-maximization" class="section level2">
+<h2>Profit Maximization</h2>
+<p>Profit maximizing firms produce the quantity such that Marginal Revenue = Marginal Cost. Because our firms are price takers, Marginal Revenue = Market Price. The firms will therefore choose to produce q such that:</p>
+<p><span class="math display">\[P = MC = c + d*q.\]</span></p>
+<p>This relationship between price and marginal cost is the individual firm’s supply curve.</p>
+</div>
+<div id="market-supply-curve" class="section level2">
+<h2>Market Supply Curve</h2>
+<p>If there are <span class="math inline">\(n\)</span> firms choosing to produce such that <span class="math inline">\(P = MC = c*q\)</span>, then the market quantity is <span class="math inline">\(Q = n*q\)</span>. Rearranging the individual supply curve to solve for q,</p>
+<p><span class="math display">\[
+q = (P-c)/d
+\]</span></p>
+<p>and substituting into the the equation for market quantity,</p>
+<span class="math display">\[\begin{aligned}
+Q &amp;= n*q \\
+&amp; = n*(P-c)/d,
+\end{aligned}\]</span>
+<p>which is a relationship between the market price and the market output, in other words, the market supply curve.</p>
+</div>
+<div id="demand" class="section level2">
+<h2>Demand</h2>
+<p>In order to find the competitive market equilibrium price and quantity, we need both the market supply and demand. Assume a linear demand curve.</p>
+<p><span class="math display">\[P = a - b*Q\]</span></p>
+</div>
+<div id="market-entry-and-exit" class="section level2">
+<h2>Market Entry and Exit</h2>
+<p>We have information about the market demand and supply curves, which means we can solve for the equilibrium price and quantity. While doing so, we have thus far assumed a fixed number of firms, <span class="math inline">\(n\)</span>. The current market conditions may lead to firms wishing to exit the market for better opportunities elsewhere or additional firms wanting to enter into the market because it represents a better opportunity. Long run market entry/exit incentives depend on the profitability of the existing firms in the market. Positive profits will lead to increases in <span class="math inline">\(n\)</span> as more firms enter the market. Negtive profits create incentives for firms to leave the market and thereby reduce <span class="math inline">\(n\)</span>. The number of firms in the market is in equilibrium when profits are zero.</p>
+<p>Profits for a firm are calculated as</p>
+<p><span class="math display">\[Profit = Total Revenue - Total Costs\]</span></p>
+<p>Total Revenue is simply market price times quanitity produced by the firm, <span class="math inline">\(q\)</span>. Total Costs are the sum of variable and fixed costs. Variable costs are the sum of all variable costs of the <span class="math inline">\(q\)</span> units produced and can be calculated as the area underneath the marginal cost curve from 0 to <span class="math inline">\(q\)</span>.</p>
+<p>Profits can also be calculated as a function market price, <span class="math inline">\(q\)</span>, and average costs,</p>
+<p><span class="math display">\[Profit = (Price - AC)*q.\]</span></p>
+<p>Side-by-side graphs: Left pane showing parameters Center Graph showing Market Demand and Supply Right Graph showing Marginal Analysis (MR, MC, AC) Right-bottom graph showing total analysis (TR, TC, profit)</p>
+<p>Give them some parameters to put in and tell me what the graph spits out - either #s or take a picture.</p>
+<pre class="r"><code>library(shiny)
+
+ui &lt;- fluidPage(
+  fluidRow(
+    column(6, 
+           plotOutput(&quot;market_plot&quot;),
+           numericInput(&quot;a&quot;, &quot;Demand Intercept&quot;, 100, min = 0),
+           numericInput(&quot;b&quot;, &quot;Demand Slope&quot;, 2)
+  ),
+  column(6, plotOutput(&quot;marginal_plot&quot;),
+         plotOutput(&quot;total_plot&quot;))
+))
+
+server &lt;- function(input, output) {
+  output$market_plot &lt;- renderPlot({ 
+    plot(1, 1, 
+         main = &quot;Market Plot&quot;)
+    })
+  
+  output$marginal_plot &lt;- renderPlot({
+    plot(1, 1, 
+         main = &quot;Marginal Plot&quot;)
+    })
+  output$total_plot &lt;- renderPlot({
+    plot(1, 1, 
+         main = &quot;Total Plot&quot;)
+    })
+}
+
+shinyApp(ui = ui, server = server, options = list(height = 700))</code></pre>
+<div style="width: 100% ; height: 700px ; text-align: center; box-sizing: border-box; -moz-box-sizing: border-box; -webkit-box-sizing: border-box;" class="muted well">Shiny applications not supported in static R Markdown documents</div>
 </div>
 
 
