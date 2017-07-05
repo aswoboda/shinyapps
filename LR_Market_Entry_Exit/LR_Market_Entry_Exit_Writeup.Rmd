@@ -94,15 +94,26 @@ ui <- fluidPage(
   fluidRow(
     column(6, 
            plotOutput("market_plot"),
-           numericInput("a", "Demand Intercept", 100, min = 0),
-           numericInput("b", "Demand Slope", 2),
-           numericInput("c", "MC curve Intercept", 0),
-           numericInput("d", "MC curve Slope", .5),
-           numericInput("FC", "Fixed Costs", 100),
-           numericInput("n", "Number of Firms", 1)
+           column(6,
+             numericInput("a", "Demand Intercept", 100, min = 0),
+             numericInput("b", "Demand Slope", 2),
+             numericInput("c", "MC curve Intercept", 0),
+             numericInput("d", "MC curve Slope", .5),
+             numericInput("FC", "Fixed Costs", 100),
+             numericInput("n", "Number of Firms", 1)
+           ),
+           column(6,
+                  h3("Curves to plot"),
+                  checkboxInput("show_Demand", "Plot Demand Curve"),
+                  checkboxInput(inputId = "show_profit",
+                    label = "Show Profits",
+                    value = FALSE))
   ),
   column(6, plotOutput("marginal_plot"),
-         plotOutput("total_plot"))
+         plotOutput("total_plot"),
+         checkboxInput(inputId = "show_profit",
+                    label = "Show Profits",
+                    value = FALSE))
 ))
 
 server <- function(input, output) {
@@ -110,38 +121,82 @@ server <- function(input, output) {
   invDemand <- function(Q) input$a - input$b*Q
   TC <- function(q) input$FC + q*input$c + input$d/2*q^2
   AC <- function(q) input$FC/q + input$c + input$d/2*q
+  library(RColorBrewer)
+  my.palette <- brewer.pal(6, "Set2")
+  colDemand <- my.palette[1]
+  colSupply <- my.palette[2]
+  colMC <- my.palette[3]
+  colAC <- my.palette[4]
+  colTC <- my.palette[5]
+  colTR <- my.palette[6]
   
   output$market_plot <- renderPlot({ 
     plot(1, 1, type = "n", las = 1,
          xaxs = "i", yaxs = "i",
          xlim = c(0, Qstar(input)*1.2), xlab = "Market Quantity",
          ylim = c(0, input$a), ylab = "Market Price",
-         main = "Market Plot")
-    abline(input$a, -1*input$b)
-    abline(input$c, input$d/input$n)
+         main = "Market")
+    abline(input$a, -1*input$b, lwd = 2, col = colDemand)
+    abline(input$c, input$d/input$n, lwd = 2, col = colSupply)
     abline(h = invDemand(Qstar(input)), lty = 3)
+    legend("topright", bty = "n", cex = 1.5,
+           legend = c("Demand", "Supply"),
+           text.col = c(colDemand, colSupply))
     })
   
   output$marginal_plot <- renderPlot({
+    qstar = Qstar(input)/input$n
+    xmax = qstar*1.2
     plot(1, 1, type = "n", las = 1,
          xaxs = "i", yaxs = "i",
-         xlim = c(0, Qstar(input)/input$n*1.2), xlab = "Firm quantity",
+         xlim = c(0, xmax), xlab = "Firm quantity",
          ylim = c(0, input$a), ylab = "Market Price",
-         main = "Firm Plot")
+         main = "Marginal Analysis")
     abline(h = invDemand(Qstar(input)), lty = 3)
-    abline(input$c, input$d)
-    curve(AC, add = TRUE)
+    abline(input$c, input$d, lwd = 2, col = colMC)
+    lines(x = c(qstar, qstar), y = c(0, invDemand(Qstar(input))), lty = 2)
+    
+    if(input$show_profit) {
+      curve(AC, add = TRUE, lwd = 2, col = colAC)
+      polygon(x = c(0, qstar, qstar, 0),
+            y = c(AC(qstar), AC(qstar), invDemand(Qstar(input)), invDemand(Qstar(input))),
+            col = rgb(0, 0, 1, .15),
+            border = NA)
+      profit = (invDemand(Qstar(input)) - AC(qstar))*qstar
+      text(qstar/2, mean(c(invDemand(Qstar(input)), AC(qstar))),
+         paste("Profit =", round(profit)))
+      legend("topright", bty = "n", cex = 1.5,
+           legend = c("Marginal Cost", "Average Cost"),
+           text.col = c(colMC, colAC))
+    }
+    if(!input$show_profit) {
+      legend("topright", bty = "n", cex = 1.5,
+           legend = c("Marginal Cost"),
+           text.col = c(colMC))
+    }
     })
   
   output$total_plot <- renderPlot({
-    xmax = Qstar(input)/input$n*1.2
+    qstar = Qstar(input)/input$n
+    xmax = qstar*1.2
     plot(1, 1, type = "n", las = 1,
          xaxs = "i", yaxs = "i",
          xlim = c(0, xmax), xlab = "Firm quantity",
          ylim = c(0, max(TC(xmax), invDemand(Qstar(input))*xmax)), ylab = "$",
-         main = "Firm Plot")
-    abline(0, invDemand(Qstar(input)))
-    curve(TC, from = -1, add = TRUE)
+         main = "Total Analysis")
+    abline(0, invDemand(Qstar(input)), lwd = 2, col = colTR)
+    curve(TC, from = -1, add = TRUE, lwd = 2, col = colTC)
+    abline(v = qstar, lty = 2)
+    legend("topleft", bty = "n", cex = 1.5,
+           legend = c("Total Revenue", "Total Cost"),
+           text.col = c(colTR, colTC))
+    if(input$show_profit) {
+      profit = invDemand(Qstar(input))*qstar - TC(qstar)
+      text(qstar, mean(c(invDemand(Qstar(input))*qstar, TC(qstar))),
+         paste("Profit =", round(profit)), pos = 2)
+      lines(x = c(qstar, qstar), y = c(invDemand(Qstar(input))*qstar, TC(qstar)),
+          col = "blue", lwd = 3) 
+    }
     })
 }
 
