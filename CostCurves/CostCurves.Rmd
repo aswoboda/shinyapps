@@ -1,0 +1,46 @@
+---
+title: "Cost Curves"
+author: "Aaron Swoboda"
+date: "July 5, 2017"
+output: html_document
+---
+
+Let's explore the implications of a total cost curve that is cubic in nature - that is, it can be written as a polynomial function of output along the lines of:
+
+$$TotalCost = a + b*q +c*q^2 + d*q^3.$$
+
+Using the above notation, the Marginal Cost can be written as:
+
+$$MarginalCost = b + 2*c*q + 3*d*q^2$$
+
+Let's explore the impact of these four parameters on these two and other important costs curves.
+
+```{r}
+library(shiny)
+ui <- fluidPage(
+  fluidRow(
+    column(4,
+           numericInput("a", "a", 1),
+           numericInput("b", "b", 1),
+           numericInput("c", "c", 1),
+           numericInput("d", "d", 1)),
+    column(8,
+           plotOutput("marginal_plot"),
+           plotOutput("total_plot"))
+  )
+)
+
+server <- function(input, output) {
+  TC <- function(q) input$a + q*input$b + q^2*input$c + q^3*input$d
+  AC <- function(q) TC(q)/q
+  VC <- function(q) TC(q)-input$a
+  AVC <- function(q) VC(q)/q
+  AFC <- function(q) input$a/q
+  MC <- function(q) input$b + q*2*input$c + q^2*3*input$d
+  
+  
+  
+  
+}
+```
+
